@@ -52,26 +52,3 @@ function App() {
 }
 
 export default App;
-/*
-export const handler = async (event) => {
-  // TODO implement
-  console.log("Hello");
-  let res="error";
-  const type=event.params.path.type;
-  if(type==="all"){
-    res="return all users";
-  }
-  else if(type==="single"){
-    res="return one user";
-  }
-  event.age+=12;
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify("Name:"+event.body.name+"- Age:"+event.body.age),
-    resp: res,
-    product_id: event.params.querystring.product_id,
-    productName: event.params.querystring.productName
-  };
-  return response;
-};
-*/
