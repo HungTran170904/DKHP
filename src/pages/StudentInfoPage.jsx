@@ -1,17 +1,16 @@
 import React, {useState, useEffect} from "react";
-import TableHeader from "../components/TableHeader"
-import TableAction from "../components/TableAction";
-const AllStudentsMainPage = () => {
+import TableHeader from "../components/TableHeader";
+import { API, Auth } from 'aws-amplify';
+const StudentInfoPage = () => {
     const [studentData, setStudentData] = useState([]);
     useEffect(() => {
         const loadData= async() => {
-            const idToken=(await Auth.currentSession()).getIdToken().getJwtToken();
+            const user=await Auth.currentAuthenticatedUser();
+            const student_id=parseInt(user.attributes['custom:user_id']);
             const myInit={
-                headers: {
-                  Authorization: idToken
-                },
                 queryStringParameters: {
-                    action: "GetStudent"
+                    action: "GetStudent",
+                    student_id: student_id
                 }
               };
             const data =API.get('APIGateway', '/-dkhp', myInit)
@@ -41,17 +40,14 @@ const AllStudentsMainPage = () => {
             <table className="table table-striped table-hover">
                 <TableHeader data={["Họ Tên", "MSSV"]} />
                 <tbody>
-                    return (
                         <tr>
                             <th scope="row">{studentData.name}</th>
                             <th scope="row">{studentData.mssv}</th>
-                            <TableAction />
                         </tr>
-                    )
                 </tbody>
             </table>
         </div>
     );
 }
 
-export default AllStudentsMainPage;
+export default StudentInfoPage;

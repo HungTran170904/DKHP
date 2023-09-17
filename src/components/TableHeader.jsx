@@ -8,7 +8,6 @@ const TableHeader = ({data}) => {
                         <th scope="col">{data}</th>
                     )
                 })}
-                <th scope="col">Action</th>
             </tr>
         </thead>
     );

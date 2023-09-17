@@ -1,7 +1,14 @@
 import './App.css';
 import { API, Amplify, Auth } from 'aws-amplify';
-import { Authenticator } from '@aws-amplify/ui-react';
+import { Authenticator, Heading, Text, useTheme } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
+import {BrowserRouter , Route, Routes } from 'react-router-dom';
+import NavBar from './components/NavBar';
+import RegisteredCoursesPage from './pages/RegisteredCoursesPage';
+import AllCoursesMainPage from './pages/AllCoursesMainPage';
+import WelcomePage from './pages/WelcomePage';
+import StudentInfoPage from './pages/StudentInfoPage';
+import ErrorPage from "./pages/Errorpage";
 Amplify.configure({
   aws_project_region: 'us-east-1',
   aws_cognito_region: 'us-east-1', 
@@ -16,62 +23,70 @@ Amplify.configure({
     }
   ]
 });
+const formFields = {
+  confirmVerifyUser: {
+    confirmation_code: {
+      label: 'New Label',
+      placeholder: 'Enter your Confirmation Code:',
+      isRequired: false,
+    },
+  },
+};
+
+const components = {
+  VerifyUser: {
+    Header() {
+      const { tokens } = useTheme();
+      return (
+        <Heading
+          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
+          level={3}
+        >
+          Enter Information:
+        </Heading>
+      );
+    },
+    Footer() {
+      return <Text>Footer Information</Text>;
+    },
+  },
+
+  ConfirmVerifyUser: {
+    Header() {
+      const { tokens } = useTheme();
+      return (
+        <Heading
+          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
+          level={3}
+        >
+          Enter Information:
+        </Heading>
+      );
+    },
+    Footer() {
+      return <Text>Footer Information</Text>;
+    },
+  },
+};
 function App() {
-  const getUserData= async() => {
-      const idToken=(await Auth.currentSession()).getIdToken().getJwtToken();
-      const apiName = 'APIGateway';
-      const path = '/-dkhp';
-      const myInit={
-        headers: {
-          Authorization: idToken
-        },
-        queryStringParameters: {
-            action: "GetAllCourses"
-        }
-      };
-      API.get(apiName, path, myInit)
-      .then((response) => {
-          const obj=JSON.parse("{"+response+"}");
-          console.log(obj.result);
-      })
-      .catch((error) => {
-        console.log(error.response);
-      });
-  };
   return (
-    <Authenticator loginMechanisms={['email']}>
-      {({ signOut, user }) => (
-        <main>
-          <h1>Hello {user.username}</h1>
-          <button onClick={getUserData}>Call GET API</button><br/>
-          <button onClick={signOut}>Sign out</button><br/>
-        </main>
+    <Authenticator loginMechanisms={['email']} formFields={formFields} components={components} hideSignUp={true}>
+      {({ signOut }) => (
+        <div className="MainApp">
+            <BrowserRouter>
+                <NavBar SignOut={signOut}/>
+                <Routes>
+                    <Route exact path="/" element={<WelcomePage />}/>
+                    <Route path="/AllCourses" element={<AllCoursesMainPage />}/>
+                    <Route path="/RegisteredCourses" element={<RegisteredCoursesPage />}/>
+                    <Route path="/StudentInfo" element={<StudentInfoPage/>}/>
+                    <Route path="/*" element={<ErrorPage/>}/>
+                </Routes>
+            </BrowserRouter>
+            </div>
       )}
     </Authenticator>
   );
 }
 
 export default App;
-/*
-export const handler = async (event) => {
-  // TODO implement
-  console.log("Hello");
-  let res="error";
-  const type=event.params.path.type;
-  if(type==="all"){
-    res="return all users";
-  }
-  else if(type==="single"){
-    res="return one user";
-  }
-  event.age+=12;
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify("Name:"+event.body.name+"- Age:"+event.body.age),
-    resp: res,
-    product_id: event.params.querystring.product_id,
-    productName: event.params.querystring.productName
-  };
-  return response;
-};
-*/

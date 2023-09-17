@@ -1,22 +1,48 @@
 import React, {useState, useEffect} from "react";
-import TableHeader from "../components/TableHeader"
-import NewRecordButton from "../components/NewRecordButton";
-import TableAction from "../components/TableAction";
+import TableHeader from "../components/TableHeader";
+import { API, Auth } from 'aws-amplify';
 const RegisteredCoursesPage = () => {
-    const [registeredCourses, setregisteredCourses] = useState([]);
+    const [courseData, setCourseData] = useState([]);
     useEffect(() => {
-        const loadData = () => {
-            fetch("http://localhost:8888/api/faculties")
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    setFacultyData(data);
-                })
+        const loadData= async() => {
+            const user=await Auth.currentAuthenticatedUser();
+            const student_id=parseInt(user.attributes['custom:user_id']);
+            const myInit={
+                queryStringParameters: {
+                    action: "GetRegisteredCourses",
+                    student_id: student_id 
+                }
+              };
+            const data =API.get('APIGateway', '/-dkhp', myInit)
+            .then((response) => {
+                setCourseData(JSON.parse("{"+response+"}").result);
+            })
+            .catch((error) => {
+              console.log(error.response);
+            });
         };
-
         loadData();
-    }, [])
-
+    },[]);
+    const DeleteFunction=async(course_id)=>{
+        const user=await Auth.currentAuthenticatedUser();
+        const student_id=parseInt(user.attributes['custom:user_id']);
+            const myInit={
+                queryStringParameters: {
+                    action: "Delete",
+                    course_id: course_id,
+                    student_id: student_id
+                }
+              };
+              API.get('APIGateway', '/-dkhp', myInit)
+              .then((response) => {
+                    const obj=JSON.parse("{"+response+"}");
+                  if(obj.result==="success") alert("The course was deleted successfully");
+                  else alert("Unable to delete the course");
+              })
+              .catch((error) => {
+                console.log(error.response);
+              });
+    }
     return (
         <div className="main-page">
             <div
@@ -27,18 +53,24 @@ const RegisteredCoursesPage = () => {
                     alignItems: "center",
                 }}
             >
-                <h1>All Faculties</h1>
-                <NewRecordButton />
+                <h1>Các môn đã đăng kí</h1>
             </div>
 
             <table className="table table-striped table-hover">
-                <TableHeader data={["ID"]} />
+                <TableHeader data={["Mã Lớp", "Môn học", "Số TC", "Sĩ Số","Đã ĐK","Action"]} />
                 <tbody>
-                {facultyData?.map((data)=> {
+                {courseData?.map((data)=> {
+                    let course_id=data.course_id;
                     return (
                         <tr>
-                            <th scope="row">{data.id}</th>
-                            <TableAction />
+                            <th scope="row">{data.MaLop}</th>
+                            <td>{data.CourseName}</td>
+                            <td>{data.SoTC}</td>
+                            <td>{data.SiSo}</td>
+                            <td>{data.DaDK}</td>
+                            <td colSpan={2}>
+                                    <button type="button" className="btn btn-danger" onClick={()=>DeleteFunction(course_id)}>Delete</button>
+                            </td>
                         </tr>
                     )
                 })}
@@ -48,4 +80,4 @@ const RegisteredCoursesPage = () => {
     );
 }
 
-export default AllCoursesMainPage;
+export default RegisteredCoursesPage;

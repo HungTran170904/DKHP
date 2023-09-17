@@ -1,33 +1,50 @@
 import React, {useState, useEffect} from "react";
-import TableHeader from "../components/TableHeader"
-import TableAction from "../components/TableAction";
-import NewRecordButton from "../components/NewRecordButton";
-
-const AllCoursesMainPage = (action, para1, para2) => {
+import { API, Auth } from 'aws-amplify';
+import TableHeader from '../components/TableHeader';
+const AllCoursesMainPage = () => {
     const [courseData, setCourseData] = useState([]);
-    useEffect(() => {
-        const loadData= async() => {
-            const idToken=(await Auth.currentSession()).getIdToken().getJwtToken();
+    const [Search, setSearch]=useState("");
+    const loadData= async() => {
+        //alert(Search);
+        const myInit={
+            queryStringParameters:{}
+          };
+        if(Search=="") myInit.queryStringParameters.action="GetAllCourses";
+        else {
+            myInit.queryStringParameters.action="GetCoursesBySearch";
+            myInit.queryStringParameters.search=Search;
+        } 
+       API.get('APIGateway', '/-dkhp', myInit)
+        .then((response) => {
+            setCourseData(JSON.parse("{"+response+"}").result);
+        })
+        .catch((error) => {
+          console.log(error.response);
+        });
+    };
+    const AddFunction=async(course_id)=>{
+        const user=await Auth.currentAuthenticatedUser();
+        const student_id=parseInt(user.attributes['custom:user_id']);
             const myInit={
-                headers: {
-                  Authorization: idToken
-                },
                 queryStringParameters: {
-                    action: action
+                    action: "Add",
+                    course_id: course_id,
+                    student_id: student_id
                 }
               };
-            if(para1!=underfined) myInit.queryStringParameters.para1=para1;
-            if(para2!=underfined) myInit.queryStringParameters.para2=para2;
-            const data =API.get('APIGateway', '/-dkhp', myInit)
-            .then((response) => {
-                setCourseData(JSON.parse("{"+response+"}").result);
-            })
-            .catch((error) => {
-              console.log(error.response);
-            });
-        };
-        loadData();
-    },[]);
+              API.get('APIGateway', '/-dkhp', myInit)
+              .then((response) => {
+                  const obj=JSON.parse("{"+response+"}");
+                  if(obj.result==="success") alert("You enrolled the course successfully");
+                  else if(obj.result==="added") alert("The course has already existed ");
+                  else if(obj.result==="full") alert("The class is now full");
+                  else alert("Unable to enroll the course");
+              })
+              .catch((error) => {
+                console.log(error.response);
+              });
+    }
+    useEffect(()=>{loadData()},[]);
     return (
         <div className="main-page">
             <div
@@ -39,13 +56,19 @@ const AllCoursesMainPage = (action, para1, para2) => {
                 }}
             >
                 <h1>Danh sách môn học</h1>
-                <NewRecordButton />
+                <form class="d-flex col-lg-6" role="search" onSubmit={(e)=>{
+                    alert(e.currentTarget.getElementById('Search').value);
+                    setSearch(e.target.getElementById('Search').value);
+                    }}>
+                    <input class="form-control me-2" type="search" placeholder="Search" id="Search"/>
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
             </div>
-
-            <table className="table table-striped table-hover">
-                <TableHeader data={["Mã Lớp", "Môn học", "Số TC", "Sĩ Số","Đã ĐK"]} />
+             <table className="table table-striped table-hover">
+                <TableHeader data={["Mã Lớp", "Môn học", "Số TC", "Sĩ Số","DaDK","Action"]} />
                 <tbody>
                 {courseData?.map((data)=> {
+                    let course_id=data.course_id;
                     return (
                         <tr>
                             <th scope="row">{data.MaLop}</th>
@@ -53,9 +76,11 @@ const AllCoursesMainPage = (action, para1, para2) => {
                             <td>{data.SoTC}</td>
                             <td>{data.SiSo}</td>
                             <td>{data.DaDK}</td>
-                            <TableAction />
+                            <td>
+                                    <button type="button" className="btn btn-primary mr-2" onClick={()=>AddFunction(course_id)}>Add</button>
+                            </td>
                         </tr>
-                    )
+                    );
                 })}
                 </tbody>
             </table>

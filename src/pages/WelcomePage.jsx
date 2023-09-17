@@ -13,9 +13,9 @@ const WelcomePage = () => (
         }}
     >
         <h1 style={{ marginBottom: "20px" }}>Welcome to the Course Registration App!</h1>
-        <Link to="/courses">Go to Courses Page</Link>
-        <Link to="/faculties">Go to Faculties Page</Link>
-        <Link to="/students">Go to Students Page</Link>
+        <Link to="/AllCourses">Go to Courses Page</Link>
+        <Link to="/RegisteredCourses">Go to Registered Courses Page</Link>
+        <Link to="/StudentInfo">Go to Student Page</Link>
     </div>
 );
 

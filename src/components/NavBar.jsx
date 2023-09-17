@@ -1,28 +1,24 @@
 import React from "react";
-import AllCoursesMainPage from "./pages/AllCoursesMainPage";
-import AllFacultiesMainPage from "./pages/AllFacultiesMainPage";
-import AllStudentsMainPage from "./pages/AllStudentsMainPage";
-import WelcomePage from "./pages/WelcomePage";
-import ErrorPage from "./pages/Errorpage";
-const NavBar = () => {
+import { Link } from "react-router-dom"
+const NavBar = (props) => {
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
-            <a className="navbar-brand" href="#">Course Registration App</a>
+            <Link className="navbar-brand" to="/">Course Registration App</Link>
             <div className="collapse navbar-collapse" id="navbarText">
                 <ul className="navbar-nav mr-auto">
                     <li className="nav-item active">
-                        <a className="nav-link" onClick={()=>AllCoursesMainPage("GetAllCourses")}>Dashboard</a>
+                        <Link className="nav-link" to="/AllCourses">Dashboard</Link>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link" href="/faculties">Môn Đã ĐK</a>
+                        <Link className="nav-link" to="/RegisteredCourses">Môn Đã ĐK</Link>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link" href="/students">Sinh Viên</a>
+                        <Link className="nav-link" to="/StudentInfo">Sinh Viên</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" onClick={props.SignOut}>Đăng Xuất</Link>
                     </li>
                 </ul>
-                <span className="navbar-text">
-                    UIT
-                </span>
             </div>
         </nav>
     );
