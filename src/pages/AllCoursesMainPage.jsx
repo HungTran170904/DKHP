@@ -3,26 +3,21 @@ import { API, Auth } from 'aws-amplify';
 import TableHeader from '../components/TableHeader';
 const AllCoursesMainPage = () => {
     const [courseData, setCourseData] = useState([]);
-    const [Search, setSearch]=useState("");
+    const [searchTerm, setSearchTerm]=useState("");
+    const [search, setSearch]=useState("");
     const loadData= async() => {
-        //alert(Search);
         const myInit={
-            queryStringParameters:{}
+            queryStringParameters:{action:"GetAllCourses"}
           };
-        if(Search=="") myInit.queryStringParameters.action="GetAllCourses";
-        else {
-            myInit.queryStringParameters.action="GetCoursesBySearch";
-            myInit.queryStringParameters.search=Search;
-        } 
        API.get('APIGateway', '/-dkhp', myInit)
         .then((response) => {
-            setCourseData(JSON.parse("{"+response+"}").result);
+            setCourseData(response.result);
         })
         .catch((error) => {
           console.log(error.response);
         });
     };
-    const AddFunction=async(course_id)=>{
+    const AddFunction=async(course_id, MaLop)=>{
         const user=await Auth.currentAuthenticatedUser();
         const student_id=parseInt(user.attributes['custom:user_id']);
             const myInit={
@@ -34,17 +29,21 @@ const AllCoursesMainPage = () => {
               };
               API.get('APIGateway', '/-dkhp', myInit)
               .then((response) => {
-                  const obj=JSON.parse("{"+response+"}");
-                  if(obj.result==="success") alert("You enrolled the course successfully");
-                  else if(obj.result==="added") alert("The course has already existed ");
-                  else if(obj.result==="full") alert("The class is now full");
-                  else alert("Unable to enroll the course");
+                  if(response.result==="success") alert("Bạn đã đăng kí thành công lớp "+MaLop);
+                  else if(response.result==="added") alert("Lớp "+MaLop+" đã có sẵn trong danh sách đăng kí của bạn");
+                  else if(response.result==="full") alert("Không thể đăng kí lớp "+MaLop+" do đã đủ số học viên");
+                  else if(response.result==="error")  alert("Đăng kí lớp "+MaLop+" không thành công");
               })
               .catch((error) => {
                 console.log(error.response);
               });
     }
     useEffect(()=>{loadData()},[]);
+    const handleFilter = (item) => {
+        const re = new RegExp("^"+search,"i");
+        return item.MaLop.match(re);
+    }
+    const filteredCourse = (search==="")?courseData:courseData.filter(handleFilter);
     return (
         <div className="main-page">
             <div
@@ -56,36 +55,37 @@ const AllCoursesMainPage = () => {
                 }}
             >
                 <h1>Danh sách môn học</h1>
-                <form class="d-flex col-lg-6" role="search" onSubmit={(e)=>{
-                    alert(e.currentTarget.getElementById('Search').value);
-                    setSearch(e.target.getElementById('Search').value);
-                    }}>
-                    <input class="form-control me-2" type="search" placeholder="Search" id="Search"/>
-                    <button class="btn btn-outline-success" type="submit">Search</button>
+                <form className="d-flex col-lg-6" role="search" onSubmit={(e)=>{e.preventDefault(); setSearch(searchTerm);}}>
+                    <input className="form-control me-2" type="search" placeholder="Search" id="Search" onChange={(e)=>setSearchTerm(e.target.value)}/>
+                    <button className="btn btn-outline-success" type="submit" >Search</button>
                 </form>
             </div>
              <table className="table table-striped table-hover">
                 <TableHeader data={["Mã Lớp", "Môn học", "Số TC", "Sĩ Số","DaDK","Action"]} />
                 <tbody>
-                {courseData?.map((data)=> {
-                    let course_id=data.course_id;
+                {filteredCourse?.map((data)=> {
                     return (
-                        <tr>
+                        <tr key={data.course_id}>
                             <th scope="row">{data.MaLop}</th>
                             <td>{data.CourseName}</td>
                             <td>{data.SoTC}</td>
                             <td>{data.SiSo}</td>
                             <td>{data.DaDK}</td>
                             <td>
-                                    <button type="button" className="btn btn-primary mr-2" onClick={()=>AddFunction(course_id)}>Add</button>
+                                    <button type="button" className="btn btn-primary mr-2" onClick={()=>AddFunction(data.course_id, data.MaLop)}>Add</button>
                             </td>
                         </tr>
-                    );
+                    )
                 })}
                 </tbody>
             </table>
         </div>
-    );
+    )
 }
 
 export default AllCoursesMainPage;
+/*
+    onClick={() => {
+                        setSearch(searchTerm);}
+                    }
+*/

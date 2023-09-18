@@ -15,7 +15,7 @@ const RegisteredCoursesPage = () => {
               };
             const data =API.get('APIGateway', '/-dkhp', myInit)
             .then((response) => {
-                setCourseData(JSON.parse("{"+response+"}").result);
+                setCourseData(response.result);
             })
             .catch((error) => {
               console.log(error.response);
@@ -23,7 +23,7 @@ const RegisteredCoursesPage = () => {
         };
         loadData();
     },[]);
-    const DeleteFunction=async(course_id)=>{
+    const DeleteFunction=async(course_id, MaLop)=>{
         const user=await Auth.currentAuthenticatedUser();
         const student_id=parseInt(user.attributes['custom:user_id']);
             const myInit={
@@ -35,9 +35,11 @@ const RegisteredCoursesPage = () => {
               };
               API.get('APIGateway', '/-dkhp', myInit)
               .then((response) => {
-                    const obj=JSON.parse("{"+response+"}");
-                  if(obj.result==="success") alert("The course was deleted successfully");
-                  else alert("Unable to delete the course");
+                  if(response.result==="success"){
+                    alert("Đã hủy đăng kí thành công lớp "+MaLop);
+                    setCourseData(prevState => prevState.filter(item => item.course_id !== course_id));
+                  } 
+                  else if(response.result==="error") alert("Hủy đăng kí lớp "+MaLop+" không thành công");
               })
               .catch((error) => {
                 console.log(error.response);
@@ -60,16 +62,15 @@ const RegisteredCoursesPage = () => {
                 <TableHeader data={["Mã Lớp", "Môn học", "Số TC", "Sĩ Số","Đã ĐK","Action"]} />
                 <tbody>
                 {courseData?.map((data)=> {
-                    let course_id=data.course_id;
                     return (
-                        <tr>
+                        <tr key={data.course_id}>
                             <th scope="row">{data.MaLop}</th>
                             <td>{data.CourseName}</td>
                             <td>{data.SoTC}</td>
                             <td>{data.SiSo}</td>
                             <td>{data.DaDK}</td>
-                            <td colSpan={2}>
-                                    <button type="button" className="btn btn-danger" onClick={()=>DeleteFunction(course_id)}>Delete</button>
+                            <td>
+                                    <button type="button" className="btn btn-danger" onClick={()=>DeleteFunction(data.course_id, data.MaLop)}>Delete</button>
                             </td>
                         </tr>
                     )

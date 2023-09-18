@@ -5,7 +5,7 @@ const TableHeader = ({data}) => {
             <tr>
                 {data.map((data) => {
                     return (
-                        <th scope="col">{data}</th>
+                        <th scope="col" key={data}>{data}</th>
                     )
                 })}
             </tr>

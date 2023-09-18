@@ -7,7 +7,7 @@ const NavBar = (props) => {
             <div className="collapse navbar-collapse" id="navbarText">
                 <ul className="navbar-nav mr-auto">
                     <li className="nav-item active">
-                        <Link className="nav-link" to="/AllCourses">Dashboard</Link>
+                        <Link className="nav-link" to="/AllCourses">DKHP</Link>
                     </li>
                     <li className="nav-item">
                         <Link className="nav-link" to="/RegisteredCourses">Môn Đã ĐK</Link>
